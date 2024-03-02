@@ -1,0 +1,9 @@
+keras
+numpy
+opencv_contrib_python
+opencv_python
+pandas
+Pillow
+streamlit
+tensorflow
+tensorflow_intel
