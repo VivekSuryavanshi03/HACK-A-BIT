@@ -7,7 +7,7 @@ import pandas as pd
 from keras.models import load_model
 from inference import prediction
 import cv2
-from Pathlib import Path
+from pathlib import Path
 
 
 # Load the pre-trained segmentation model
@@ -36,6 +36,7 @@ def tversky(y_true, y_pred, alpha=0.7, beta=0.3, smooth=1e-5):
     tversky = (true_pos + smooth) / (true_pos + alpha * false_neg + beta * false_pos + smooth)
     return tversky
 
+
 def load_segmentation_model():
     model_path = Path("C:/Users/vivek/Desktop/hack/ResUNet-segModel-weights.hdf5")
     model_seg = load_model(model_path, custom_objects={'focal_tversky': focal_tversky , 'tversky': tversky})
@@ -45,6 +46,8 @@ def load_classfication_model():
     model_path = Path("C:/Users/vivek/Desktop/hack/clf-densenet-weights.hdf5")
     model = load_model(model_path)
     return model
+
+
 # Function to perform segmentation
 def segment_brain_mri(image_array):
     model_seg = load_segmentation_model()
