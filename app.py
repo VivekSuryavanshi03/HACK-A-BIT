@@ -36,14 +36,14 @@ def tversky(y_true, y_pred, alpha=0.7, beta=0.3, smooth=1e-5):
     return tversky
 
 def load_segmentation_model():
-    model_seg = load_model(r"C:\Users\vivek\Desktop\hack\ResUNet-segModel-weights.hdf5", custom_objects={'focal_tversky': focal_tversky , 'tversky': tversky})
+    model_path = Path("C:/Users/vivek/Desktop/hack/ResUNet-segModel-weights.hdf5")
+    model_seg = load_model(model_path, custom_objects={'focal_tversky': focal_tversky , 'tversky': tversky})
     return model_seg
 
-
 def load_classfication_model():
-    model = load_model(r"C:\Users\vivek\Desktop\hack\clf-densenet-weights.hdf5")  # Update with your model path
+    model_path = Path("C:/Users/vivek/Desktop/hack/clf-densenet-weights.hdf5")
+    model = load_model(model_path)
     return model
-
 # Function to perform segmentation
 def segment_brain_mri(image_array):
     model_seg = load_segmentation_model()
