@@ -33,7 +33,7 @@ def tversky(y_true, y_pred, alpha=0.7, beta=0.3, smooth=1e-5):
     return tversky
 
 # Define the URLs where the model files are hosted
-seg_model_url = "https://github.com/vivek8057/HACK-A-BIT/blob/048171a99b86ff67d2389a2f1348f7aea9dc976f/ResUNet-segModel-weights.hdf5"
+seg_model_url = "https://raw.githubusercontent.com/vivek8057/HACK-A-BIT/main/ResUNet-segModel-weights.hdf5"
 clf_model_url = "https://raw.githubusercontent.com/vivek8057/HACK-A-BIT/main/clf-densenet-weights.hdf5"
 
 # Load the segmentation model from the URL
