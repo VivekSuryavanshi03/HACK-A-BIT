@@ -29,16 +29,24 @@ def tversky(y_true, y_pred, alpha=0.7, beta=0.3, smooth=1e-5):
     tversky = (true_pos + smooth) / (true_pos + alpha * false_neg + beta * false_pos + smooth)
     return tversky
 
-# Load the pre-trained segmentation model
-@st.cache(allow_output_mutation=True)
-def load_segmentation_model():
-    try:
-        model_path = Path("C:/Users/vivek/Desktop/hack/ResUNet-segModel-weights.hdf5")
-        model_seg = load_model(model_path, custom_objects={'focal_tversky': focal_tversky , 'tversky': tversky})
-        return model_seg
-    except Exception as e:
-        st.error(f"Error loading segmentation model: {e}")
-        return None
+
+
+def load_segmentation_model(model_path):
+    model_seg = load_model(model_path, custom_objects={'focal_tversky': focal_tversky , 'tversky': tversky})
+    return model_seg
+
+# Define the directory where the model file is located
+model_directory = Path("C:/Users/vivek/Desktop/hack")
+
+# Define the filename of the segmentation model
+model_filename = "ResUNet-segModel-weights.hdf5"
+
+# Construct the full path to the model file
+model_path = model_directory / model_filename
+
+# Load the segmentation model using the dynamic file path
+model_seg = load_segmentation_model(model_path)
+
 
 @st.cache(allow_output_mutation=True)
 def load_classfication_model():
