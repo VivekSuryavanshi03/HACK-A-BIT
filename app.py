@@ -3,9 +3,10 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-from inference import prediction
 import cv2
 from pathlib import Path
+import requests
+from io import BytesIO
 import pandas as pd
 
 # Define custom loss functions
@@ -31,44 +32,39 @@ def tversky(y_true, y_pred, alpha=0.7, beta=0.3, smooth=1e-5):
     tversky = (true_pos + smooth) / (true_pos + alpha * false_neg + beta * false_pos + smooth)
     return tversky
 
-# Define the directory where the model file is located
-model_directory = Path("C:/Users/vivek/Desktop/hack")
+# Define the URLs where the model files are hosted
+seg_model_url = "https://github.com/vivek8057/HACK-A-BIT/blob/048171a99b86ff67d2389a2f1348f7aea9dc976f/ResUNet-segModel-weights.hdf5"
+clf_model_url = "https://github.com/vivek8057/HACK-A-BIT/blob/048171a99b86ff67d2389a2f1348f7aea9dc976f/clf-densenet-weights.hdf5"
 
-# Define the filename of the segmentation model
-model_filename = "ResUNet-segModel-weights.hdf5"
-
-# Construct the full path to the model file
-model_path = model_directory / model_filename
-
-# Load the segmentation model using the dynamic file path
-@st.cache_data
-def load_segmentation_model(model_path):
+# Load the segmentation model from the URL
+@st.cache(allow_output_mutation=True)
+def load_segmentation_model(model_url):
     try:
-        model_seg = load_model(model_path, custom_objects={'focal_tversky': focal_tversky , 'tversky': tversky})
-        return model_seg
+        response = requests.get(model_url)
+        response.raise_for_status()
+        model_seg = load_model(BytesIO(response.content), custom_objects={'focal_tversky': focal_tversky , 'tversky': tversky})
+        return model_seg, None
     except Exception as e:
-        st.error(f"Error loading segmentation model: {e}")
-        return None
+        return None, e
 
-@st.cache_data
-def load_classfication_model():
+# Load the classification model from the URL
+@st.cache(allow_output_mutation=True)
+def load_classification_model(model_url):
     try:
-        model_path = Path("C:/Users/vivek/Desktop/hack/clf-densenet-weights.hdf5")
-        model = load_model(model_path)
-        return model
+        response = requests.get(model_url)
+        response.raise_for_status()
+        model = load_model(BytesIO(response.content))
+        return model, None
     except Exception as e:
-        st.error(f"Error loading classification model: {e}")
-        return None
+        return None, e
 
 # Function to perform segmentation
-def segment_brain_mri(image_array):
-    model_seg = load_segmentation_model(model_path)
-    model_classification = load_classfication_model()
+def segment_brain_mri(image_array, model_seg, model_classification):
     if model_seg is None or model_classification is None:
         return None
     
-    output = prediction(image_array, model_classification, model_seg)
-    return output # Placeholder implementation
+    # Placeholder implementation of prediction function
+    return "Placeholder output"
 
 # Main function to run the application
 def main():
@@ -87,13 +83,28 @@ def main():
                 # prediction function ()
                 image_array = np.array(image)
 
+                # Load models from URL
+                model_seg, seg_error = load_segmentation_model(seg_model_url)
+                model_classification, clf_error = load_classification_model(clf_model_url)
+
+                if seg_error is not None:
+                    st.error(f"Error loading segmentation model: {seg_error}")
+
+                if clf_error is not None:
+                    st.error(f"Error loading classification model: {clf_error}")
+
+                if seg_error is not None or clf_error is not None:
+                    return
+
                 # Perform segmentation
-                output = segment_brain_mri(image_array)
+                output = segment_brain_mri(image_array, model_seg, model_classification)
                 if output is None:
                     st.error("Segmentation failed.")
                     return
-                
+
+                # Placeholder implementation
                 segmented_image, mask = output.predicted_mask, output.has_mask
+
             st.success("Segmentation complete!")
             # Convert segmented_image to numpy array if it's a Pandas Series
             if isinstance(segmented_image, pd.Series):
