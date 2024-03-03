@@ -1,13 +1,12 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
-import tensorflow as tf
 from tensorflow.keras.models import load_model
 from inference import prediction
 import cv2
 from pathlib import Path
 
-# Define custom loss function
+# Define custom loss functions
 def focal_tversky(y_true, y_pred, alpha=0.7, beta=0.3, gamma=0.75):
     """Focal Tversky loss function."""
     smooth = 1e-5
@@ -58,7 +57,7 @@ def segment_brain_mri(image_array):
     if model_seg is None or model_classification is None:
         return None
     
-    output = prediction(image_array,model_classification,model_seg)
+    output = prediction(image_array, model_classification, model_seg)
     return output # Placeholder implementation
 
 # Main function to run the application
@@ -66,7 +65,7 @@ def main():
     st.title("Brain MRI Segmentation")
     st.write("Upload an MRI image and let our model segment the brain region for you!")
 
-    uploaded_file = st.file_uploader("Choose an MRI image...", type=["jpg","tif", "png"])
+    uploaded_file = st.file_uploader("Choose an MRI image...", type=["jpg", "tif", "png"])
 
     if uploaded_file is not None:
         # Display the uploaded image
@@ -78,28 +77,28 @@ def main():
                 # prediction function ()
                 image_array = np.array(image)
 
-                # Perform segmentation - 
+                # Perform segmentation
                 output = segment_brain_mri(image_array)
                 if output is None:
                     st.error("Segmentation failed.")
                     return
                 
-                segmented_image , mask = output.predicted_mask,output.has_mask
+                segmented_image, mask = output.predicted_mask, output.has_mask
             st.success("Segmentation complete!")
             # Convert segmented_image to numpy array if it's a Pandas Series
             if isinstance(segmented_image, pd.Series):
                 segmented_image = segmented_image.to_numpy()
-                segmented_image=segmented_image.flatten()
-                mask=segmented_image[0][0]
-                image=np.array(image)
-                img=cv2.resize(image,(256,256))
-                mask3d=cv2.merge([mask*255,mask*0,mask*0]).astype(np.uint8)
+                segmented_image = segmented_image.flatten()
+                mask = segmented_image[0][0]
+                image = np.array(image)
+                img = cv2.resize(image, (256, 256))
+                mask3d = cv2.merge([mask * 255, mask * 0, mask * 0]).astype(np.uint8)
 
-                out=cv2.addWeighted(img,0.7,mask3d,0.7,0)
+                out = cv2.addWeighted(img, 0.7, mask3d, 0.7, 0)
 
             # Display the segmented image
             st.image(out, caption="Segmented Image", width=300)
-            if mask[0].any()==0:
+            if mask[0].any() == 0:
                 st.header("NO MASK :)")
 
 # Run the application
