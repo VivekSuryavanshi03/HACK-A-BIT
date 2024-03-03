@@ -7,6 +7,28 @@ from inference import prediction
 import cv2
 from pathlib import Path
 
+# Define custom loss function
+def focal_tversky(y_true, y_pred, alpha=0.7, beta=0.3, gamma=0.75):
+    """Focal Tversky loss function."""
+    smooth = 1e-5
+    y_true_pos = tf.keras.backend.flatten(y_true)
+    y_pred_pos = tf.keras.backend.flatten(y_pred)
+    true_pos = tf.reduce_sum(y_true_pos * y_pred_pos)
+    false_neg = tf.reduce_sum(y_true_pos * (1 - y_pred_pos))
+    false_pos = tf.reduce_sum((1 - y_true_pos) * y_pred_pos)
+    tversky = (true_pos + smooth) / (true_pos + alpha * false_neg + beta * false_pos + smooth)
+    focal_tversky = tf.keras.backend.pow((1 - tversky), gamma)
+    return focal_tversky
+
+def tversky(y_true, y_pred, alpha=0.7, beta=0.3, smooth=1e-5):
+    """Tversky metric function."""
+    y_true_pos = tf.keras.backend.flatten(y_true)
+    y_pred_pos = tf.keras.backend.flatten(y_pred)
+    true_pos = tf.reduce_sum(y_true_pos * y_pred_pos)
+    false_neg = tf.reduce_sum(y_true_pos * (1 - y_pred_pos))
+    false_pos = tf.reduce_sum((1 - y_true_pos) * y_pred_pos)
+    tversky = (true_pos + smooth) / (true_pos + alpha * false_neg + beta * false_pos + smooth)
+    return tversky
 
 # Load the pre-trained segmentation model
 @st.cache(allow_output_mutation=True)
@@ -29,7 +51,6 @@ def load_classfication_model():
         st.error(f"Error loading classification model: {e}")
         return None
 
-
 # Function to perform segmentation
 def segment_brain_mri(image_array):
     model_seg = load_segmentation_model()
@@ -39,7 +60,6 @@ def segment_brain_mri(image_array):
     
     output = prediction(image_array,model_classification,model_seg)
     return output # Placeholder implementation
-
 
 # Main function to run the application
 def main():
